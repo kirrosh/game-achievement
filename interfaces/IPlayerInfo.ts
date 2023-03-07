@@ -1,0 +1,20 @@
+export type IPlayerInfo = {
+	steamid: string;
+	communityvisibilitystate: number;
+	profilestate: number;
+	personaname: string;
+	lastlogoff: number;
+	profileurl: string;
+	avatar: string;
+	avatarmedium: string;
+	avatarfull: string;
+	personastate: number;
+	primaryclanid: string;
+	timecreated: number;
+	personastateflags: number;
+	gameextrainfo: string;
+	avatarhash: string;
+	loccountrycode: string;
+	locstatecode: string;
+	loccityid: number;
+};
