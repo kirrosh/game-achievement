@@ -9,54 +9,46 @@ import {
 } from "@/server/url";
 import { ofetch } from "ofetch";
 import { z } from "zod";
-import { procedure, router } from "../trpc";
+import { protectedProcedure, router } from "../trpc";
 
 export const steamRouter = router({
-  GetRecentlyPlayedGames: procedure
-    .input(
-      z.object({
-        steamId: z.string(),
-      })
-    )
-    .query(async ({ input }) => {
-      const data: {
-        games: IRecentlyPlayedGame[];
-        total_count: number;
-      } = await ofetch(STEAM_URL_GetRecentlyPlayedGames, {
-        params: {
-          key: process.env.NEXT_PUBLIC_API_KEY,
-          steamid: input.steamId,
-          count: 10,
-        },
-      }).then((res) => res.response);
-      return data;
-    }),
+  GetRecentlyPlayedGames: protectedProcedure.query(async ({ ctx, input }) => {
+    const data: {
+      games: IRecentlyPlayedGame[];
+      total_count: number;
+    } = await ofetch(STEAM_URL_GetRecentlyPlayedGames, {
+      params: {
+        key: process.env.NEXT_PUBLIC_API_KEY,
+        steamid: ctx.session.user?.userId,
+        count: 10,
+      },
+    }).then((res) => res.response);
+    return data;
+  }),
   // no unlockTime
-  GetUserStatsForGame: procedure
+  GetUserStatsForGame: protectedProcedure
     .input(
       z.object({
-        steamId: z.string(),
         appId: z.number(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const data: IPlayerStats = await ofetch(STEAM_URL_GetUserStatsForGame, {
         params: {
           key: process.env.NEXT_PUBLIC_API_KEY,
-          steamid: input.steamId,
+          steamid: ctx.session.user?.userId,
           appid: input.appId,
         },
       }).then((res) => res.playerstats);
       return data;
     }),
-  GetPlayerAchievements: procedure
+  GetPlayerAchievements: protectedProcedure
     .input(
       z.object({
-        steamId: z.string(),
         appId: z.number(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const data: {
         steamId: string;
         gameName: string;
@@ -69,25 +61,24 @@ export const steamRouter = router({
       } = await ofetch(STEAM_URL_GetPlayerAchievements, {
         params: {
           key: process.env.NEXT_PUBLIC_API_KEY,
-          steamid: input.steamId,
+          steamid: ctx.session.user?.userId,
           appid: input.appId,
         },
       }).then((res) => res.playerstats);
       return data;
     }),
 
-  GetSchemaForGame: procedure
+  GetSchemaForGame: protectedProcedure
     .input(
       z.object({
-        steamId: z.string(),
         appId: z.number(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const data: IGameSchema = await ofetch(STEAM_URL_GetSchemaForGame, {
         params: {
           key: process.env.NEXT_PUBLIC_API_KEY,
-          steamid: input.steamId,
+          steamid: ctx.session.user?.userId,
           appid: input.appId,
         },
       }).then((res) => res.game);

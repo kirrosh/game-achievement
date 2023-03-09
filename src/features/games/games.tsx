@@ -3,9 +3,7 @@ import { Card, Collapse, Image } from "@nextui-org/react";
 import { Achevements } from "./acivements";
 
 export const Games = () => {
-  const { data } = trpc.steam.GetRecentlyPlayedGames.useQuery({
-    steamId: "76561197997523600",
-  });
+  const { data } = trpc.steam.GetRecentlyPlayedGames.useQuery();
   if (!data) return <div>Loading...</div>;
   return (
     <div className="grid gap-8 m-auto">

@@ -3,7 +3,6 @@ import { Avatar, Card, Text } from "@nextui-org/react";
 import {
   useAddress,
   useContract,
-  useNFTs,
   useOwnedNFTs,
   Web3Button,
 } from "@thirdweb-dev/react";
@@ -89,12 +88,10 @@ export const Achevements = ({ appId }: Props) => {
   };
   const { data } = trpc.steam.GetSchemaForGame.useQuery({
     appId,
-    steamId: "76561197997523600",
   });
 
   const userStats = trpc.steam.GetPlayerAchievements.useQuery({
     appId,
-    steamId: "76561197997523600",
   });
 
   const achivementsData = new Map(

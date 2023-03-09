@@ -1,11 +1,20 @@
-import { Games } from "@/features/games/games";
+import { trpc } from "@/utils/trpc";
+import { Button } from "@nextui-org/react";
+import { useRouter } from "next/router";
 
-const Profile = () => {
+const Login = () => {
+  const router = useRouter();
+  const login = trpc.session.login.useMutation({
+    onSuccess: (res) => {
+      router.push(res.redirectUrl);
+    },
+  });
+
   return (
-    <div className="mx-auto w-[600px]">
-      <Games />
+    <div>
+      <Button onClick={() => login.mutate()}>Login</Button>
     </div>
   );
 };
 
-export default Profile;
+export default Login;
