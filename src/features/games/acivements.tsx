@@ -1,5 +1,5 @@
 import { trpc } from "@/utils/trpc";
-import { Avatar, Card, Text } from "@nextui-org/react";
+import { Avatar, Badge, Card, Text } from "@nextui-org/react";
 import {
   useAddress,
   useContract,
@@ -120,12 +120,40 @@ export const Achevements = ({ appId }: Props) => {
         const ach = achivementsData.get(item.apiname);
         if (!ach) return null;
         return (
-          <Card variant="flat" key={ach.name}>
+          <Card
+            isHoverable={ownedAchivements.has(item.apiname)}
+            variant="flat"
+            key={ach.name}
+            css={{
+              backgroundColor: ownedAchivements.has(item.apiname)
+                ? "$successLight"
+                : "",
+            }}
+          >
             <Card.Body>
               <div className="flex gap-4">
                 <Avatar squared src={ach.icon} size="lg" />
-                <div>
-                  <Text b>{ach.displayName}</Text>
+                <div className="flex-1">
+                  <div className="flex justify-between">
+                    <Text b>{ach.displayName}</Text>
+                    <Text
+                      css={{
+                        color: "$primary",
+                        backgroundColor: "$primaryLight",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        fontWeight: "$semibold",
+                        fontSize: "$sm",
+                      }}
+                    >
+                      Unlocked:{" "}
+                      {new Intl.DateTimeFormat("us-US", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(item.unlocktime * 1000))}
+                    </Text>
+                  </div>
+
                   <Text
                     css={{
                       color: "$accents7",
@@ -137,9 +165,7 @@ export const Achevements = ({ appId }: Props) => {
                   </Text>
                 </div>
               </div>
-              {ownedAchivements.has(item.apiname) ? (
-                "Owned"
-              ) : (
+              {!ownedAchivements.has(item.apiname) && (
                 <Web3Button
                   contractAddress={
                     process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!
