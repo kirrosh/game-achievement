@@ -1,23 +1,18 @@
 import type { AppProps } from "next/app";
-import {
-  ConnectWallet,
-  ThirdwebProvider,
-  Web3Button,
-} from "@thirdweb-dev/react";
+import { ThirdwebProvider } from "@thirdweb-dev/react";
 import Head from "next/head";
 import "./styles/globals.css";
-import { Navbar, NextUIProvider, Text } from "@nextui-org/react";
+import { NextUIProvider } from "@nextui-org/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc } from "../utils/trpc";
-import dynamic from "next/dynamic";
+import { createTheme } from "@nextui-org/react";
+
 import Header from "@/features/header";
-
-// const Header = dynamic(() => import("@/features/header"), {
-//   ssr: false,
-// });
-
-// Create a client
 const queryClient = new QueryClient();
+
+const darkTheme = createTheme({
+  type: "dark",
+});
 
 // This is the chainId your dApp will work on.
 // const activeChainId = ChainId.Mumbai;
@@ -25,19 +20,22 @@ const queryClient = new QueryClient();
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ThirdwebProvider activeChain={"mumbai"}>
-      <NextUIProvider>
+      <NextUIProvider theme={darkTheme}>
         <QueryClientProvider client={queryClient}>
           <Head>
-            <title>thirdweb Signature Based Minting</title>
+            <title>AchieveNFT</title>
             <meta
               name="viewport"
               content="width=device-width, initial-scale=1.0"
             />
             <meta
               name="description"
-              content="thirdweb Example Repository to Showcase signature based minting on an NFT Collection contract"
+              content="AchieveNFT is a platform that allows users to create NFTs from their Steam achievements. Login with Steam and Metamask, and turn your gaming milestones into NFTs."
             />
-            <meta name="keywords" content="thirdweb signature based minting" />
+            <meta
+              name="keywords"
+              content="AchieveNFT, Steam Achievements, NFT, Metamask, gaming milestones,"
+            />
           </Head>
           <Header />
           <main className="p-4">

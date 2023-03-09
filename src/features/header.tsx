@@ -25,14 +25,22 @@ const Header = () => {
   });
   return (
     <Navbar isBordered={true} variant="sticky">
-      <Navbar.Brand>Game Acivements</Navbar.Brand>
+      <Navbar.Brand
+        css={{
+          textGradient: "45deg, $yellow600 -20%, $red600 100%",
+          fontWeight: "bold",
+          fontSize: "$xl",
+        }}
+      >
+        AchieveNFT
+      </Navbar.Brand>
       <Navbar.Content
         activeColor="primary"
         hideIn="xs"
         variant="highlight"
         className="flex gap-4"
       >
-        <ConnectWallet colorMode="light" />
+        <ConnectWallet />
         {!data?.isLoggedIn && (
           <Button onClick={() => login.mutate()}>Login</Button>
         )}
@@ -42,7 +50,7 @@ const Header = () => {
               <Avatar
                 bordered
                 as="button"
-                color="warning"
+                color="primary"
                 size="md"
                 src={data?.avatarUrl}
               />

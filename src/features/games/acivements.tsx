@@ -1,5 +1,5 @@
 import { trpc } from "@/utils/trpc";
-import { Avatar, Badge, Card, Text } from "@nextui-org/react";
+import { Avatar, Badge, Card, Collapse, Text } from "@nextui-org/react";
 import {
   useAddress,
   useContract,
@@ -10,6 +10,7 @@ import { ofetch } from "ofetch";
 
 type Props = {
   appId: number;
+  name: string;
 };
 
 const mintWithSignature = async ({
@@ -49,7 +50,7 @@ const mintWithSignature = async ({
     console.error("An error occurred trying to mint the NFT:", e);
   }
 };
-export const Achevements = ({ appId }: Props) => {
+export const Achevements = ({ appId, name }: Props) => {
   const address = useAddress();
 
   // Fetch the NFT collection from thirdweb via it's contract address.
@@ -106,109 +107,188 @@ export const Achevements = ({ appId }: Props) => {
     lastAchivements?.map((item) => item.apiname)
   );
 
-  const otherAchivements = userStats.data?.achievements
-    ?.filter((item) => !lastAchivementsSet.has(item.apiname))
-    .sort((a, b) => b.unlocktime - a.unlocktime);
+  const otherAchivements = userStats.data?.achievements?.filter(
+    (item) => !lastAchivementsSet.has(item.apiname)
+  );
 
   const ownedAchivements = new Set(
     owned?.map((item) => item.metadata.objectId)
   );
+  const ownedAchivementsMap = new Map(
+    owned?.map((item) => [item.metadata.objectId, item])
+  );
+
+  if (!lastAchivements) return null;
 
   return (
-    <div className="grid gap-4">
-      {lastAchivements?.map((item) => {
-        const ach = achivementsData.get(item.apiname);
-        if (!ach) return null;
-        return (
-          <Card
-            isHoverable={ownedAchivements.has(item.apiname)}
-            variant="flat"
-            key={ach.name}
-            css={{
-              backgroundColor: ownedAchivements.has(item.apiname)
-                ? "$successLight"
-                : "",
-            }}
-          >
-            <Card.Body>
-              <div className="flex gap-4">
-                <Avatar squared src={ach.icon} size="lg" />
-                <div className="flex-1">
-                  <div className="flex justify-between">
-                    <Text b>{ach.displayName}</Text>
-                    <Text
-                      css={{
-                        color: "$primary",
-                        backgroundColor: "$primaryLight",
-                        padding: "0.25rem 0.5rem",
-                        borderRadius: "0.25rem",
-                        fontWeight: "$semibold",
-                        fontSize: "$sm",
-                      }}
-                    >
-                      Unlocked:{" "}
-                      {new Intl.DateTimeFormat("us-US", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }).format(new Date(item.unlocktime * 1000))}
-                    </Text>
-                  </div>
-
-                  <Text
-                    css={{
-                      color: "$accents7",
-                      fontWeight: "$semibold",
-                      fontSize: "$sm",
-                    }}
-                  >
-                    {ach.description}
-                  </Text>
-                </div>
-              </div>
-              {!ownedAchivements.has(item.apiname) && (
-                <Web3Button
-                  contractAddress={
-                    process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!
-                  }
-                  isDisabled={isFetching}
-                  action={() =>
-                    mint({
-                      name: ach.name,
-                    })
-                  }
+    <Card key={appId}>
+      <Card.Image
+        src={`https://steamcdn-a.akamaihd.net/steam/apps/${appId}/header.jpg`}
+        alt={name}
+        objectFit="cover"
+        width="100%"
+      />
+      <Card.Body>
+        <Collapse
+          css={{
+            ".nextui-collapse-view": {
+              padding: "$0",
+            },
+          }}
+          title={
+            <div className="flex items-center justify-between pr-4">
+              <Text
+                size={40}
+                css={{
+                  textGradient: "45deg, $yellow600 -20%, $red600 100%",
+                }}
+                weight="bold"
+              >
+                {name}
+              </Text>
+              <Text
+                css={{
+                  fontWeight: "$semibold",
+                  fontSize: "$lg",
+                  color: "$accents7",
+                }}
+              >
+                {lastAchivements.length}/{userStats.data?.achievements.length}
+              </Text>
+            </div>
+          }
+          divider={false}
+        >
+          <div className="grid gap-4 pt-2">
+            {lastAchivements?.map((item) => {
+              const ach = achivementsData.get(item.apiname);
+              if (!ach) return null;
+              return (
+                <Card
+                  isHoverable={ownedAchivements.has(item.apiname)}
+                  variant="bordered"
+                  key={ach.name}
+                  isPressable={ownedAchivements.has(item.apiname)}
+                  onClick={() => {
+                    if (ownedAchivementsMap.has(item.apiname)) {
+                      // open link in new tab
+                      window.open(
+                        `https://testnets.opensea.io/assets/mumbai/${process.env
+                          .NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!}/${
+                          ownedAchivementsMap.get(item.apiname)?.metadata.id
+                        }`
+                      );
+                    }
+                  }}
+                  css={{
+                    backgroundColor: ownedAchivements.has(item.apiname)
+                      ? "$successLight"
+                      : "",
+                    cursor: ownedAchivements.has(item.apiname) ? "pointer" : "",
+                  }}
                 >
-                  Mint NFT
-                </Web3Button>
-              )}
-            </Card.Body>
-          </Card>
-        );
-      })}
-      {otherAchivements?.map((item) => {
-        const ach = achivementsData.get(item.apiname);
-        if (!ach) return null;
-        return (
-          <Card variant="flat" key={ach.name}>
-            <Card.Body>
-              <div className="flex gap-4">
-                <Avatar squared src={ach.icongray} size="lg" />
-                <div>
-                  <Text b>{ach.displayName}</Text>
-                  <Text
-                    css={{
-                      color: "$accents7",
-                      fontWeight: "$semibold",
-                      fontSize: "$sm",
-                    }}
-                  >
-                    {ach.description}
-                  </Text>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        );
-      })}
-    </div>
+                  <Card.Body>
+                    <div className="flex gap-4">
+                      <Avatar
+                        squared
+                        src={ach.icon}
+                        size="lg"
+                        css={{
+                          borderRadius: "0",
+                          ".nextui-avatar-img": {
+                            borderRadius: "0",
+                          },
+                        }}
+                      />
+                      <div className="flex-1">
+                        <div className="flex justify-between">
+                          <Text b>{ach.displayName}</Text>
+                          <Text
+                            css={{
+                              color: "$primary",
+                              backgroundColor: "$primaryLight",
+                              padding: "0.25rem 0.5rem",
+                              borderRadius: "0.25rem",
+                              fontWeight: "$semibold",
+                              fontSize: "$sm",
+                            }}
+                          >
+                            Unlocked:{" "}
+                            {new Intl.DateTimeFormat("us-US", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            }).format(new Date(item.unlocktime * 1000))}
+                          </Text>
+                        </div>
+
+                        <Text
+                          css={{
+                            color: "$accents7",
+                            fontWeight: "$semibold",
+                            fontSize: "$sm",
+                          }}
+                        >
+                          {ach.description}
+                        </Text>
+                      </div>
+                    </div>
+                    {!ownedAchivements.has(item.apiname) && (
+                      <Web3Button
+                        contractAddress={
+                          process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!
+                        }
+                        isDisabled={isFetching}
+                        action={() =>
+                          mint({
+                            name: ach.name,
+                          })
+                        }
+                      >
+                        Mint NFT
+                      </Web3Button>
+                    )}
+                  </Card.Body>
+                </Card>
+              );
+            })}
+            {otherAchivements?.map((item) => {
+              const ach = achivementsData.get(item.apiname);
+              if (!ach) return null;
+              return (
+                <Card variant="flat" key={ach.name}>
+                  <Card.Body>
+                    <div className="flex gap-4">
+                      <Avatar
+                        squared
+                        src={ach.icongray}
+                        size="lg"
+                        css={{
+                          borderRadius: "0",
+                          ".nextui-avatar-img": {
+                            borderRadius: "0",
+                          },
+                        }}
+                      />
+                      <div>
+                        <Text b>{ach.displayName}</Text>
+                        <Text
+                          css={{
+                            color: "$accents7",
+                            fontWeight: "$semibold",
+                            fontSize: "$sm",
+                          }}
+                        >
+                          {ach.description}
+                        </Text>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              );
+            })}
+          </div>
+        </Collapse>
+      </Card.Body>
+    </Card>
   );
 };
