@@ -30,7 +30,9 @@ const Header = () => {
           textGradient: "45deg, $yellow600 -20%, $red600 100%",
           fontWeight: "bold",
           fontSize: "$xl",
+          cursor: "pointer",
         }}
+        onClick={() => router.push("/")}
       >
         AchieveNFT
       </Navbar.Brand>
