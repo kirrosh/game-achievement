@@ -44,7 +44,7 @@ export default async function check(req: NextApiRequest, res: NextApiResponse) {
   const sdk = ThirdwebSDK.fromPrivateKey(
     // Your wallet private key (read it in from .env.local file)
     process.env.PRIVATE_KEY as string,
-    "mumbai"
+    process.env.NEXT_PUBLIC_ETH_NETWORK as string
   );
 
   // Load the NFT Collection via it's contract address using the SDK

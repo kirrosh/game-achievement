@@ -173,8 +173,9 @@ export const Achevements = ({ appId, name }: Props) => {
                     if (ownedAchivementsMap.has(item.apiname)) {
                       // open link in new tab
                       window.open(
-                        `https://testnets.opensea.io/assets/mumbai/${process.env
-                          .NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!}/${
+                        `https://testnets.opensea.io/assets/${
+                          process.env.NEXT_PUBLIC_ETH_NETWORK
+                        }/${process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!}/${
                           ownedAchivementsMap.get(item.apiname)?.metadata.id
                         }`
                       );

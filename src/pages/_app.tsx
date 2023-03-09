@@ -15,11 +15,10 @@ const darkTheme = createTheme({
 });
 
 // This is the chainId your dApp will work on.
-// const activeChainId = ChainId.Mumbai;
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ThirdwebProvider activeChain={"mumbai"}>
+    <ThirdwebProvider activeChain={process.env.NEXT_PUBLIC_ETH_NETWORK as any}>
       <NextUIProvider theme={darkTheme}>
         <QueryClientProvider client={queryClient}>
           <Head>
