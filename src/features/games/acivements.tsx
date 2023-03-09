@@ -4,6 +4,7 @@ import {
   useAddress,
   useContract,
   useNFTs,
+  useOwnedNFTs,
   Web3Button,
 } from "@thirdweb-dev/react";
 import { ofetch } from "ofetch";
@@ -24,15 +25,6 @@ const mintWithSignature = async ({
   name: string;
 }) => {
   try {
-    // Make a request to /api/server
-    // const signedPayloadReq = await fetch(`/api/server`, {
-    //   method: "POST",
-    //   body: JSON.stringify({
-    //     authorAddress: address, // Address of the current user
-    //     nftName: nftName || "",
-    //   }),
-    // });
-
     const res = await ofetch(`/api/steam/${steamId}/check-achevement`, {
       method: "POST",
       body: {
@@ -41,13 +33,6 @@ const mintWithSignature = async ({
         name,
       },
     });
-
-    // Grab the JSON from the response
-    // const json = signedPayloadReq;
-
-    // if (!signedPayloadReq.ok) {
-    //   alert(json.error);
-    // }
 
     // If the request succeeded, we'll get the signed payload from the response.
     // The API should come back with a JSON object containing a field called signedPayload.
@@ -75,8 +60,21 @@ export const Achevements = ({ appId }: Props) => {
     "nft-collection"
   );
 
+  // const account = useAddress();
+
+  // const { contract } = useContract(
+  //   process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS,
+  //   "nft-collection"
+  // );
+  const {
+    data: owned,
+    isFetching,
+    refetch,
+    error,
+  } = useOwnedNFTs(nftCollection, address);
+
   // Load all the minted NFTs in the collection
-  const { data: nfts, isLoading: loadingNfts } = useNFTs(nftCollection);
+  // const { data: nfts, isLoading: loadingNfts } = useNFTs(nftCollection);
 
   const mint = async ({ name }: { name: string }) => {
     if (!address) return;
@@ -87,45 +85,107 @@ export const Achevements = ({ appId }: Props) => {
       name,
     });
     const nft = await nftCollection?.signature.mint(sign);
-    console.log(nft);
+    refetch();
   };
   const { data } = trpc.steam.GetSchemaForGame.useQuery({
     appId,
     steamId: "76561197997523600",
   });
+
+  const userStats = trpc.steam.GetPlayerAchievements.useQuery({
+    appId,
+    steamId: "76561197997523600",
+  });
+
+  const achivementsData = new Map(
+    data?.availableGameStats?.achievements?.map((item) => [item.name, item])
+  );
+
+  const lastAchivements = userStats.data?.achievements
+    ?.filter((item) => item.unlocktime > 0)
+    .sort((a, b) => b.unlocktime - a.unlocktime);
+
+  const lastAchivementsSet = new Set(
+    lastAchivements?.map((item) => item.apiname)
+  );
+
+  const otherAchivements = userStats.data?.achievements
+    ?.filter((item) => !lastAchivementsSet.has(item.apiname))
+    .sort((a, b) => b.unlocktime - a.unlocktime);
+
+  const ownedAchivements = new Set(
+    owned?.map((item) => item.metadata.objectId)
+  );
+
   return (
     <div className="grid gap-4">
-      {data?.availableGameStats?.achievements?.map((item) => (
-        <Card variant="flat" key={item.name}>
-          <Card.Body>
-            <div className="flex gap-4">
-              <Avatar squared src={item.icon} size="lg" />
-              <div>
-                <Text b>{item.displayName}</Text>
-                <Text
-                  css={{
-                    color: "$accents7",
-                    fontWeight: "$semibold",
-                    fontSize: "$sm",
-                  }}
-                >
-                  {item.description}
-                </Text>
+      {lastAchivements?.map((item) => {
+        const ach = achivementsData.get(item.apiname);
+        if (!ach) return null;
+        return (
+          <Card variant="flat" key={ach.name}>
+            <Card.Body>
+              <div className="flex gap-4">
+                <Avatar squared src={ach.icon} size="lg" />
+                <div>
+                  <Text b>{ach.displayName}</Text>
+                  <Text
+                    css={{
+                      color: "$accents7",
+                      fontWeight: "$semibold",
+                      fontSize: "$sm",
+                    }}
+                  >
+                    {ach.description}
+                  </Text>
+                </div>
               </div>
-            </div>
-            <Web3Button
-              contractAddress={process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!}
-              action={() =>
-                mint({
-                  name: item.name,
-                })
-              }
-            >
-              Mint NFT
-            </Web3Button>
-          </Card.Body>
-        </Card>
-      ))}
+              {ownedAchivements.has(item.apiname) ? (
+                "Owned"
+              ) : (
+                <Web3Button
+                  contractAddress={
+                    process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS!
+                  }
+                  isDisabled={isFetching}
+                  action={() =>
+                    mint({
+                      name: ach.name,
+                    })
+                  }
+                >
+                  Mint NFT
+                </Web3Button>
+              )}
+            </Card.Body>
+          </Card>
+        );
+      })}
+      {otherAchivements?.map((item) => {
+        const ach = achivementsData.get(item.apiname);
+        if (!ach) return null;
+        return (
+          <Card variant="flat" key={ach.name}>
+            <Card.Body>
+              <div className="flex gap-4">
+                <Avatar squared src={ach.icongray} size="lg" />
+                <div>
+                  <Text b>{ach.displayName}</Text>
+                  <Text
+                    css={{
+                      color: "$accents7",
+                      fontWeight: "$semibold",
+                      fontSize: "$sm",
+                    }}
+                  >
+                    {ach.description}
+                  </Text>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        );
+      })}
     </div>
   );
 };
