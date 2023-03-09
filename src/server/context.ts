@@ -5,7 +5,6 @@ import { sessionOptions } from "@/lib/session";
 
 export async function createContext(opts: trpcNext.CreateNextContextOptions) {
   const session = await getIronSession(opts.req, opts.res, sessionOptions);
-
   return {
     session,
     req: opts.req,
